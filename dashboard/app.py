@@ -98,7 +98,6 @@ with ui.layout_columns(fill=False):
 
 with ui.layout_columns():
     
-    
     with ui.card(full_screen=True):
         ui.card_header("Hospital Data")
        
