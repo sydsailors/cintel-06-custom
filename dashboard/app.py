@@ -6,7 +6,7 @@ import pandas as pd
 from pathlib import Path
 from shiny import App, reactive, render
 from shiny.express import input, ui, output
-from shinywidgets import output_widget, render_plotly
+from shinywidgets import output_widget, render_plotly, render_widget
 import plotly.express as px
 from faicons import icon_svg
 
@@ -97,11 +97,50 @@ with ui.layout_columns(fill=False):
             f"{hospital_df['Operating Margin'].mean():.2%}"
 
 with ui.layout_columns():
+    
+    
     with ui.card(full_screen=True):
         ui.card_header("Hospital Data")
        
         @render.data_frame
         def data_table():
             return hospital_df
+
+    # Scatterplot showing available beds vs staffed beds
+    with ui.card(full_screen=True):
+        ui.card_header("Available Beds vs. Staffed Beds")
+
+        @render_widget
+        def plotly_scatterplot():
+            df = filtered_data()
+            if df.empty:
+                return px.scatter(title="No data from filters")
+            return px.scatter(
+                df,
+                x="Available Beds",
+                y="Staffed Beds",
+                color="Year",
+                symbol="Year",
+                hover_data=["Facility Name"],
+                labels={
+                    "Available Beds": "Available Beds",
+                    "Staffed Beds": "Staffed Beds"
+                }
+            )
+        @reactive.calc
+        def filtered_data():
+            is_year_match = hospital_df["Year"].astype(str).isin([str(y) for y in input.year()])
+            revenue_range = input.revenue()
+            is_revenue_match = (
+                (hospital_df["Total Operating Rev"] >= revenue_range[0]) &
+                (hospital_df["Total Operating Rev"] <= revenue_range[1])
+            )
+            return hospital_df[is_year_match & is_revenue_match]
         
-        
+        @reactive.effect
+        @reactive.event(input.reset)
+        def _():
+            ui.update_slider("revenue", value=rev_rng)
+            ui.update_checkbox_group(
+                "year", selected=sorted(hospital_df["Year"].unique().tolist())
+            )
