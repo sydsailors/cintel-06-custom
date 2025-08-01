@@ -95,4 +95,13 @@ with ui.layout_columns(fill=False):
         @render.express
         def avg_margin():
             f"{hospital_df['Operating Margin'].mean():.2%}"
+
+with ui.layout_columns():
+    with ui.card(full_screen=True):
+        ui.card_header("Hospital Data")
+       
+        @render.data_frame
+        def data_table():
+            return hospital_df
+        
         
