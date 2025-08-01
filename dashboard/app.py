@@ -116,7 +116,7 @@ with ui.layout_columns():
             if df.empty:
                 return px.scatter(title="No data from filters")
             return px.scatter(
-                df,
+                df.assign(Year=df["Year"].astype(str)),
                 x="Available Beds",
                 y="Staffed Beds",
                 color="Year",
